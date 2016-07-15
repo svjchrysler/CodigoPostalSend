@@ -1,13 +1,20 @@
 package com.codigopostalsend.svjchrysler.codigopostalsend.Activities;
 
+import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -17,9 +24,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.codigopostalsend.svjchrysler.codigopostalsend.Location;
 import com.codigopostalsend.svjchrysler.codigopostalsend.R;
 import com.codigopostalsend.svjchrysler.codigopostalsend.Utils.Urls;
 import com.codigopostalsend.svjchrysler.codigopostalsend.Utils.UserLogin;
+import com.google.android.gms.maps.model.LatLng;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
@@ -27,8 +36,10 @@ import com.mobsandgeeks.saripaar.annotation.NotEmpty;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener, Validator.ValidationListener {
@@ -51,6 +62,32 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         configComponents();
         configEvents();
         configTexts();
+        configLocation();
+    }
+
+    private void configLocation() {
+        LocationManager mlocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Location Local = new Location();
+        Local.setLoginActivity(this);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mlocManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) Local);
+    }
+
+    public void setLocation(android.location.Location loc) {
+        if (loc.getLatitude() != 0.0 && loc.getLongitude() != 0.0) {
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> list = geocoder.getFromLocation(loc.getLatitude(), loc.getLongitude(), 1);
+                if (!list.isEmpty()) {
+                    UserLogin.location = new LatLng(loc.getLatitude(), loc.getLongitude());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void configTexts() {
@@ -58,9 +95,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void configComponents() {
-        edtEmail = (EditText)findViewById(R.id.edtEmail);
-        edtPassword = (EditText)findViewById(R.id.edtPassword);
-        btnLogin = (Button)findViewById(R.id.btnLogin);
+        edtEmail = (EditText) findViewById(R.id.edtEmail);
+        edtPassword = (EditText) findViewById(R.id.edtPassword);
+        btnLogin = (Button) findViewById(R.id.btnLogin);
 
         validator = new Validator(this);
     }
@@ -88,7 +125,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 UserLogin.id = jsonObject.getString("id");
-                                UserLogin.nombre =  jsonObject.getString("name") + " " + jsonObject.getString("paternalLastName");
+                                UserLogin.nombre = jsonObject.getString("name") + " " + jsonObject.getString("paternalLastName");
                                 Toast.makeText(LoginActivity.this, "Login Correcto", Toast.LENGTH_SHORT).show();
                                 redirectListUbications();
                                 progressDialog.dismiss();
@@ -145,16 +182,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onValidationFailed(List<ValidationError> errors) {
-        for (ValidationError error : errors)
-        {
+        for (ValidationError error : errors) {
             View view = error.getView();
             String message = error.getCollatedErrorMessage(this);
 
             if (view instanceof EditText) {
                 ((EditText) view).setError(message);
-            }
-            else
-            {
+            } else {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
         }

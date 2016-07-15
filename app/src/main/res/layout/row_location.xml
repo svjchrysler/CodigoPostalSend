@@ -32,7 +32,7 @@
                 android:id="@+id/tvEntrega"
                 android:paddingLeft="10dp"
                 android:textSize="18sp"
-                android:layout_marginTop="12dp"/>
+                android:layout_marginTop="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -42,7 +42,7 @@
                 android:id="@+id/tvCalle"
                 android:paddingLeft="10dp"
                 android:textSize="18sp"
-                android:layout_marginTop="40dp"/>
+                android:layout_marginTop="40dp" />
 
             <TextView
                 android:layout_width="wrap_content"
