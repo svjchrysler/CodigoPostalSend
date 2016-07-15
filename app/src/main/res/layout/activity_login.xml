@@ -32,7 +32,7 @@
             android:layout_marginRight="16dp"
             android:inputType="textEmailAddress"
             android:hint="@string/email"
-            android:text="ximena@gmail.com"
+            android:text="wilson@gmail.com"
             android:ems="10"
             android:id="@+id/edtEmail" />
 

@@ -8,12 +8,21 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.codigopostalsend.svjchrysler.codigopostalsend.MapsActivity;
 import com.codigopostalsend.svjchrysler.codigopostalsend.Models.Order;
 import com.codigopostalsend.svjchrysler.codigopostalsend.R;
+import com.codigopostalsend.svjchrysler.codigopostalsend.Utils.Urls;
 
 import java.util.LinkedList;
 
@@ -25,13 +34,47 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
         public TextView tvCalle, tvCliente, tvEntrega, tvId;
         public ImageView imgHouse;
+        public ImageButton btnImgDelete;
 
-        public ViewHolder(View v) {
+        public ViewHolder(final View v) {
             super(v);
             tvCalle = (TextView) v.findViewById(R.id.tvCalle);
             tvCliente = (TextView) v.findViewById(R.id.tvCliente);
             tvId = (TextView) v.findViewById(R.id.tvId);
             tvEntrega = (TextView) v.findViewById(R.id.tvEntrega);
+
+            btnImgDelete = (ImageButton) v.findViewById(R.id.btnImgDelete);
+            btnImgDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    eliminarOrden(view);
+                }
+
+                private void eliminarOrden(final View view) {
+                    StringRequest stringRequest = new StringRequest(Request.Method.GET,
+                            Urls.URL_UPDATE_ORDER + tvId.getText().toString(),
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    if (response.equals("1")) {
+
+                                        Toast.makeText(v.getContext(), "Datos Actualizados", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(v.getContext(), "Error al actualizar", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    Toast.makeText(v.getContext(), "Error En el Servidor volver a intentarlo", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                    RequestQueue request = Volley.newRequestQueue(v.getContext());
+                    request.add(stringRequest);
+                }
+            });
 
             imgHouse = (ImageView) v.findViewById(R.id.imgHouse);
 
@@ -58,12 +101,17 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         return viewHolder;
     }
 
+    public void clear() {
+        listOrders.clear();
+        notifyDataSetChanged();
+    }
+
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.tvId.setText(listOrders.get(position).id);
-        holder.tvCalle.setText("Calle: " + listOrders.get(position).streetName);
-        holder.tvEntrega.setText("Cliente a Entregar: " + listOrders.get(position).entrega);
-        holder.tvCliente.setText("Cliente pedido: " + listOrders.get(position).cliente);
+        holder.tvCalle.setText("Direccion: " + listOrders.get(position).streetName);
+        holder.tvEntrega.setText("Entregar a: " + listOrders.get(position).entrega);
+        holder.tvCliente.setText("Envio: " + listOrders.get(position).cliente);
 
         String imageEncode = listOrders.get(position).nameImage;
         byte[] decodeString = Base64.decode(imageEncode, Base64.DEFAULT);

@@ -1,7 +1,6 @@
 package com.codigopostalsend.svjchrysler.codigopostalsend.Activities;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,7 +17,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.codigopostalsend.svjchrysler.codigopostalsend.Adapters.ListAdapter;
-import com.codigopostalsend.svjchrysler.codigopostalsend.MapsActivity;
 import com.codigopostalsend.svjchrysler.codigopostalsend.Models.Order;
 import com.codigopostalsend.svjchrysler.codigopostalsend.R;
 import com.codigopostalsend.svjchrysler.codigopostalsend.Utils.Urls;
@@ -33,6 +31,7 @@ public class ListOrdersActivity extends AppCompatActivity {
     private RecyclerView recyclerOrders;
     private RecyclerView.Adapter adapterOrders;
     private RecyclerView.LayoutManager layoutManagerOrders;
+    private ListAdapter listAdapter = new ListAdapter(Util.listOrders);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +50,7 @@ public class ListOrdersActivity extends AppCompatActivity {
     }
 
     private void configComponents() {
+        listAdapter.clear();
         recyclerOrders = (RecyclerView) findViewById(R.id.reciclerOrders);
         recyclerOrders.setHasFixedSize(true);
 
@@ -108,6 +108,29 @@ public class ListOrdersActivity extends AppCompatActivity {
 
         RequestQueue request = Volley.newRequestQueue(this);
         request.add(stringRequest);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.update_order, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_save:
+                actualizarOrders();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void actualizarOrders() {
+        listAdapter.clear();
+        cargarListOrders();
     }
 
 }
